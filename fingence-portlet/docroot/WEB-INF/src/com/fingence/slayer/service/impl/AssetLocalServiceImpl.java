@@ -184,28 +184,22 @@ public class AssetLocalServiceImpl extends AssetLocalServiceBaseImpl {
 					}
 					
 					history = historyLocalService.createHistory(recId);
+					history.setAssetId(assetId);
+					history.setType(type);
+					history.setValue(value);
+					history.setLogDate(date);
+					
+					if (type == IConstants.HISTORY_TYPE_BOND_CASHFLOW) {
+						double principal = CellUtil.getDouble(row.getCell(++i));
+						history.setPrincipal(principal);
+					}
+					
 					try {
 						history = historyLocalService.addHistory(history);
 					} catch (SystemException e) {
 						e.printStackTrace();
 					}
 				}
-				
-				history.setAssetId(assetId);
-				history.setType(type);
-				history.setValue(value);
-				history.setLogDate(date);
-				
-				if (type == IConstants.HISTORY_TYPE_BOND_CASHFLOW) {
-					double principal = CellUtil.getDouble(row.getCell(++i));
-					history.setPrincipal(principal);
-				}
-				
-				try {
-					history = historyLocalService.updateHistory(history);
-				} catch (SystemException e) {
-					e.printStackTrace();
-				}	
 			}
 		}
 	}
