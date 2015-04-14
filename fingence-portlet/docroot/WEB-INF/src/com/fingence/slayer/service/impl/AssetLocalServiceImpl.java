@@ -117,9 +117,11 @@ public class AssetLocalServiceImpl extends AssetLocalServiceBaseImpl {
 			_log.debug("processing row ==> " + row.getRowNum());
 			System.out.println("processing row ==> " + row.getRowNum());
 			
-			if (row.getRowNum() == 0) continue;
+			int rowNum = row.getRowNum();
 			
-			if (row.getRowNum() == 1) {
+			if (rowNum == 0) continue;
+			
+			if (rowNum == 1) {
 				for (int i=0; i < columnCount; i++){
 					Cell cell = row.getCell(i);
 					if (Validator.isNull(cell)) continue;
@@ -140,9 +142,17 @@ public class AssetLocalServiceImpl extends AssetLocalServiceBaseImpl {
 				continue;
 			}
 			
-			System.out.println("going to process data...");
+			if (rowNum > 1 && rowNum < 14) continue; 
 						
-			for (int i=0; i < columnCount; i++){
+			System.out.println("going to process data...");
+			
+			Iterator<Integer> itr = columnNames.keySet().iterator();
+						
+			//for (int i=3; i < columnCount; i++){
+			
+			while (itr.hasNext()) {
+				
+				int i = itr.next();
 				Date date = CellUtil.getDate(row.getCell(i));
 				
 				if (Validator.isNull(date)) continue;
@@ -174,24 +184,28 @@ public class AssetLocalServiceImpl extends AssetLocalServiceBaseImpl {
 					}
 					
 					history = historyLocalService.createHistory(recId);
-					history.setAssetId(assetId);
-					history.setType(type);
-					history.setValue(value);
-					history.setLogDate(date);
-					
-					if (type == IConstants.HISTORY_TYPE_BOND_CASHFLOW) {
-						double principal = CellUtil.getDouble(row.getCell(++i));
-						history.setPrincipal(principal);
-					}
-					
 					try {
 						history = historyLocalService.addHistory(history);
-						_log.debug("inserted new history records..." + history);
-						System.out.println("inserted new history records..." + history);
 					} catch (SystemException e) {
 						e.printStackTrace();
 					}
 				}
+				
+				history.setAssetId(assetId);
+				history.setType(type);
+				history.setValue(value);
+				history.setLogDate(date);
+				
+				if (type == IConstants.HISTORY_TYPE_BOND_CASHFLOW) {
+					double principal = CellUtil.getDouble(row.getCell(++i));
+					history.setPrincipal(principal);
+				}
+				
+				try {
+					history = historyLocalService.updateHistory(history);
+				} catch (SystemException e) {
+					e.printStackTrace();
+				}	
 			}
 		}
 	}
